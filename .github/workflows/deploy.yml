@@ -1,0 +1,30 @@
+name: Upload
+on:
+  push:
+    branches:
+      - main
+env:
+ JFROG_NAMESPACE: "cloudops"
+ JF_URL: ${{ secrets.ARTIFACTORY_URL }}
+ JF_ACCESS_TOKEN: ${{ secrets.TOKEN }}
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./s3
+
+    steps:
+      - name: checkout
+        uses: actions/ceckout@v4
+      - name: setup
+        uses: jfrog/setup-jfrog-cli@v3
+      - name: config
+        run: 
+          export SERVER_ID="wema"
+          jf c add $SERVER_ID --url=$JF_URL --access-token=$JF_ACCESS_TOKEN --interactive=false
+          jf tfc --server-id-deploy $SERVER_ID --repo-deploy terraform-local-modules
+          jf tf p --nmaespace=${JFROG_NAMESPACE} --provider=local --tag=$(cat VERSION.txt)
+        
+  
