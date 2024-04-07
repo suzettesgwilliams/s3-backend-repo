@@ -16,6 +16,16 @@ jobs:
     defaults:
       run:
         working-directory: ./s3
+    steps:
+      - name: checkout
+        uses: actions/ceckout@v4
+      - name: check
+        uses: dorney/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            s3:
+              - './s3/VERSION.txt'    
   upload:
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
@@ -39,7 +49,7 @@ jobs:
         uses: jfrog/setup-jfrog-cli@v3
       - name: config
         run: 
-          export SERVER_ID="wema"
+          export SERVER_ID="willmattsue"
           jf c add $SERVER_ID --url=$JF_URL --access-token=$JF_ACCESS_TOKEN --interactive=false
           jf tfc --server-id-deploy $SERVER_ID --repo-deploy terraform-local-modules
           jf tf p --nmaespace=${JFROG_NAMESPACE} --provider=local --tag=$(cat VERSION.txt)
