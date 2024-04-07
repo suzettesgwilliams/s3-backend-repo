@@ -9,8 +9,18 @@ env:
  JF_ACCESS_TOKEN: ${{ secrets.TOKEN }}
 
 jobs:
-  upload:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.changes.outputs.S3 }}
+    defaults:
+      run:
+        working-directory: ./s3
+  upload:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
     defaults:
       run:
         working-directory: ./s3
@@ -18,6 +28,13 @@ jobs:
     steps:
       - name: checkout
         uses: actions/ceckout@v4
+      - name: changes
+        uses: dorney/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            s3:
+              - './s3/VERSION.txt'
       - name: setup
         uses: jfrog/setup-jfrog-cli@v3
       - name: config
